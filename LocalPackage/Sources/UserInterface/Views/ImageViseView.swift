@@ -49,7 +49,7 @@ struct ImageViseView: View {
                 Button {
                     store.send(.exportButtonTapped)
                 } label: {
-                    Text("export", bundle: .module)
+                    Text("convert", bundle: .module)
                 }
                 .controlSize(.large)
                 .disabled(store.disableToExport)

@@ -37,11 +37,15 @@ public struct ImageConvertService {
     }
 
     public func exportFolder(imageFiles: [ImageFile]) -> ExportFolder? {
-        guard !imageFiles.isEmpty else { return nil }
+        guard !imageFiles.isEmpty else {
+            return nil
+        }
         return ExportFolder { [copy = imageFiles, appStateClient] in
             let encoder = WebPEncoder()
             return copy.enumerated().compactMap { index, imageFile -> WebPFile? in
                 let value = Double(index + 1) / Double(copy.count)
+                guard imageFile.url.startAccessingSecurityScopedResource() else { return nil }
+                defer { imageFile.url.stopAccessingSecurityScopedResource() }
                 guard let nsImage = NSImage(contentsOf: imageFile.url),
                       let cgImage = nsImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
                     appStateClient.withLock { $0.progressSubject.send(value) }

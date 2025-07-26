@@ -11,34 +11,12 @@
         }
       }
     },
-    "estimatedFileSize" : {
-      "extractionState" : "stale",
+    "convert" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Estimated File Size"
-          }
-        }
-      }
-    },
-    "export" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export…"
-          }
-        }
-      }
-    },
-    "image" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Image"
+            "value" : "Convert…"
           }
         }
       }
@@ -53,34 +31,12 @@
         }
       }
     },
-    "unselected" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unselected"
-          }
-        }
-      }
-    },
     "untitled" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "untitled"
-          }
-        }
-      }
-    },
-    "video" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Video"
+            "value" : "Untitled"
           }
         }
       }

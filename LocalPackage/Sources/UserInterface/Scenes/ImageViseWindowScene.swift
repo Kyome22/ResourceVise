@@ -34,7 +34,7 @@ public struct ImageViseWindowScene: Scene {
                 Button {
                     send?(.exportButtonTapped)
                 } label: {
-                    Text("export", bundle: .module)
+                    Text("convert", bundle: .module)
                 }
                 .keyboardShortcut("s", modifiers: .command)
                 .disabled(disableToExport ?? true)
