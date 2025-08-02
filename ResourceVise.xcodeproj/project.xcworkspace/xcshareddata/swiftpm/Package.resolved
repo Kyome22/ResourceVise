@@ -1,5 +1,5 @@
 {
-  "originHash" : "9d268620ada2c895a81da057096e44383d12fe3f5ff1dd1233f11c3b224763d1",
+  "originHash" : "3b33000b4ef599f7704952acee0814f70805fa2b8b06bf01dccb51ce7dd7fcea",
   "pins" : [
     {
       "identity" : "swift-log",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Kyome22/WebPEncoder.git",
       "state" : {
-        "revision" : "303bab839ee925bb82eb849e7fff03aab6baab6d",
-        "version" : "0.1.0"
+        "revision" : "4023901235d9dda3f38df918afd3f80024e82e23",
+        "version" : "0.1.1"
       }
     }
   ],

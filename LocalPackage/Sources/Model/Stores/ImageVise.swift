@@ -9,56 +9,76 @@
 import Foundation
 import DataSource
 import Observation
+import UniformTypeIdentifiers
 
 @MainActor @Observable public final class ImageVise {
     private let appStateClient: AppStateClient
     private let nsWorkspaceClient: NSWorkspaceClient
+    private let bookmarkRepository: BookmarkRepository
     private let imageConvertService: ImageConvertService
     private let logService: LogService
 
     @ObservationIgnored private var task: Task<Void, Never>?
 
+    public var bookmarkState: BookmarkState
+    public var percentage: Int
+    public var deleteOriginal: Bool
     public var isPresentedFileImporter: Bool
-    public var isPresentedFileExporter: Bool
     public var isProcessing: Bool
     public var progressValue: Double
     public var imageFiles: [ImageFile]
-
-    public var disableToExport: Bool {
-        imageFiles.isEmpty
+    public var homePermission: HomePermission?
+    public var homeDirectory: URL? {
+        appStateClient.withLock(\.homeDirectory)
     }
-    public var exportFolder: ExportFolder? {
-        imageConvertService.exportFolder(imageFiles: imageFiles)
+    public var disableToConvert: Bool {
+        imageFiles.isEmpty
     }
 
     public init(
         _ appDependencies: AppDependencies,
+        bookmarkState: BookmarkState = .notSaved,
+        percentage: Int = 100,
+        deleteOriginal: Bool = true,
         isPresentedFileImporter: Bool = false,
-        isPresentedFileExporter: Bool = false,
         isProcessing: Bool = false,
         progressValue: Double = .zero,
-        imageFiles: [ImageFile] = []
+        imageFiles: [ImageFile] = [],
+        homePermission: HomePermission? = nil
     ) {
         self.appStateClient = appDependencies.appStateClient
         self.nsWorkspaceClient = appDependencies.nsWorkspaceClient
+        self.bookmarkRepository = .init(appDependencies.urlClient, appDependencies.userDefaultsClient)
         self.imageConvertService = .init(appDependencies)
         self.logService = .init(appDependencies)
+        self.bookmarkState = bookmarkState
+        self.percentage = percentage
+        self.deleteOriginal = deleteOriginal
         self.isPresentedFileImporter = isPresentedFileImporter
-        self.isPresentedFileExporter = isPresentedFileExporter
         self.isProcessing = isProcessing
         self.progressValue = progressValue
         self.imageFiles = imageFiles
+        self.homePermission = homePermission
     }
 
-    public func send(_ aciton: Action) {
+    public func send(_ aciton: Action) async {
         switch aciton {
-        case let .onAppear(screenName):
+        case let .task(appDependencies, screenName):
             logService.notice(.screenView(name: screenName))
             task = Task { [weak self, appStateClient] in
                 let values = appStateClient.withLock(\.progressSubject.values)
                 for await value in values {
                     self?.progressValue = value
                 }
+            }
+            bookmarkState = bookmarkRepository.bookmarkState
+            switch bookmarkState {
+            case .notSaved:
+                homePermission = .init(appDependencies, action: { [weak self] in
+                    await self?.send(.homePermission($0))
+                })
+            case .saved:
+                _ = bookmarkRepository.enable()
             }
 
         case .onDisappear:
@@ -67,45 +87,55 @@ import Observation
         case .importButtonTapped:
             isPresentedFileImporter = true
 
-        case .exportButtonTapped:
-            isPresentedFileExporter = true
+        case .convertButtonTapped:
             isProcessing = true
+            await imageConvertService.convert(
+                imageFiles: imageFiles,
+                percentage: percentage,
+                deleteOriginal: deleteOriginal
+            )
+            imageFiles.removeAll()
+            isProcessing = false
 
-        case let .onCompletionFileImport(result):
+        case let .onCompletionFileImport(appDependencies, result):
             switch result {
             case let .success(urls):
-                imageFiles = imageConvertService.imageFiles(urls: urls)
-            case let .failure(error):
-                print(error.localizedDescription)
-            }
-
-        case let .onCompletionFileExport(result):
-            isProcessing = false
-            progressValue = .zero
-            imageFiles.removeAll()
-            switch result {
-            case let .success(url):
-                if let appURL = nsWorkspaceClient.urlForApplication("com.apple.Finder") {
-                    nsWorkspaceClient.open([url], appURL)
+                switch bookmarkRepository.bookmarkState {
+                case .notSaved:
+                    homePermission = .init(appDependencies, action: { [weak self] in
+                        await self?.send(.homePermission($0))
+                    })
+                case .saved:
+                    imageFiles = imageConvertService.imageFiles(urls: urls)
                 }
             case let .failure(error):
                 print(error.localizedDescription)
             }
 
-        case .onCancellationFileExport:
-            isProcessing = false
-            progressValue = .zero
-            imageFiles.removeAll()
+        case let .homePermissionButtonTapped(appDependencies):
+            homePermission = .init(appDependencies, action: { [weak self] in
+                await self?.send(.homePermission($0))
+            })
+
+        case .homePermission(.setUpLaterButtonTapped), .homePermission(.closeButtonTapped):
+            homePermission = nil
+            bookmarkState = bookmarkRepository.bookmarkState
+            if bookmarkState == .saved {
+                _ = bookmarkRepository.enable()
+            }
+
+        case .homePermission:
+            break
         }
     }
 
     public enum Action {
-        case onAppear(String)
+        case task(AppDependencies, String)
         case onDisappear
         case importButtonTapped
-        case exportButtonTapped
-        case onCompletionFileImport(Result<[URL], any Error>)
-        case onCompletionFileExport(Result<URL, any Error>)
-        case onCancellationFileExport
+        case convertButtonTapped
+        case onCompletionFileImport(AppDependencies, Result<[URL], any Error>)
+        case homePermissionButtonTapped(AppDependencies)
+        case homePermission(HomePermission.Action)
     }
 }

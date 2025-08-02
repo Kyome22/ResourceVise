@@ -13,7 +13,7 @@ import SwiftUI
 public struct ImageViseWindowScene: Scene {
     @Environment(\.appDependencies) private var appDependencies
     @FocusedValue(\.imageViseSend) private var send
-    @FocusedValue(\.disableToExport) private var disableToExport
+    @FocusedValue(\.disableToConvert) private var disableToConvert
 
     public init() {}
 
@@ -26,18 +26,22 @@ public struct ImageViseWindowScene: Scene {
         .commands {
             CommandGroup(before: .newItem) {
                 Button {
-                    send?(.importButtonTapped)
+                    Task {
+                        await send?(.importButtonTapped)
+                    }
                 } label: {
                     Text("import", bundle: .module)
                 }
                 .keyboardShortcut("o", modifiers: .command)
                 Button {
-                    send?(.exportButtonTapped)
+                    Task {
+                        await send?(.convertButtonTapped)
+                    }
                 } label: {
                     Text("convert", bundle: .module)
                 }
                 .keyboardShortcut("s", modifiers: .command)
-                .disabled(disableToExport ?? true)
+                .disabled(disableToConvert ?? true)
             }
         }
     }

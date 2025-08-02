@@ -11,12 +11,62 @@
         }
       }
     },
+    "close" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "controlHomeDirectory" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission of controlling the home directory is required. This permission is used when this app renames files."
+          }
+        }
+      }
+    },
     "convert" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Convert…"
+            "value" : "Convert"
+          }
+        }
+      }
+    },
+    "deleteOriginal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Original"
+          }
+        }
+      }
+    },
+    "grant" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grant Permission"
+          }
+        }
+      }
+    },
+    "grantPermissionToControlHome" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grant Permission to Control Home Directory"
           }
         }
       }
@@ -31,12 +81,72 @@
         }
       }
     },
-    "untitled" : {
+    "permissionIsGranted" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Untitled"
+            "value" : "ResourceVise is granted permission to control the home directory."
+          }
+        }
+      }
+    },
+    "permissionIsNotGranted" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ResourceVise is NOT granted permission to control the home directory."
+          }
+        }
+      }
+    },
+    "requiresPreparation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ResourceVise requires preparation to use."
+          }
+        }
+      }
+    },
+    "revokePermissionToControlHome" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoke Permission to Control Home Directory"
+          }
+        }
+      }
+    },
+    "selectHome%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please select “%@”."
+          }
+        }
+      }
+    },
+    "setUpLater" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set Up Later"
+          }
+        }
+      }
+    },
+    "size" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Size:"
           }
         }
       }

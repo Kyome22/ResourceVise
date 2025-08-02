@@ -10,11 +10,11 @@ import Model
 import SwiftUI
 
 struct ImageViseSendAction {
-    var send: @MainActor @Sendable (ImageVise.Action) -> Void
+    var send: @MainActor @Sendable (ImageVise.Action) async -> Void
 
     @MainActor
-    func callAsFunction(_ action: ImageVise.Action) {
-        send(action)
+    func callAsFunction(_ action: ImageVise.Action) async {
+        await send(action)
     }
 }
 
@@ -22,7 +22,7 @@ private struct ImageViseSendActionKey: FocusedValueKey {
     typealias Value = ImageViseSendAction
 }
 
-private struct DisableToExportKey: FocusedValueKey {
+private struct DisableToConvertKey: FocusedValueKey {
     typealias Value = Bool
 }
 
@@ -32,8 +32,8 @@ extension FocusedValues {
         set { self[ImageViseSendActionKey.self] = newValue }
     }
 
-    var disableToExport: Bool? {
-        get { self[DisableToExportKey.self] }
-        set { self[DisableToExportKey.self] = newValue }
+    var disableToConvert: Bool? {
+        get { self[DisableToConvertKey.self] }
+        set { self[DisableToConvertKey.self] = newValue }
     }
 }

@@ -16,6 +16,15 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let logService = LogService(appDependencies)
         logService.bootstrap()
         logService.notice(.launchApp)
+
+        ImageConvertService(appDependencies).setHomeDirectory()
+    }
+
+    public func applicationWillTerminate(_ notification: Notification) {
+        let bookmarkRepository = BookmarkRepository(appDependencies.urlClient, appDependencies.userDefaultsClient)
+        if bookmarkRepository.bookmarkState == .saved {
+            bookmarkRepository.disable()
+        }
     }
 
     public func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

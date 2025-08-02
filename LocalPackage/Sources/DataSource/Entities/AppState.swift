@@ -7,9 +7,11 @@
 */
 
 import Combine
+import Foundation
 
 public struct AppState: Sendable {
     public var hasAlreadyBootstrap = false
+    public var homeDirectory: URL?
     public let progressSubject = PassthroughSubject<Double, Never>()
 }
 

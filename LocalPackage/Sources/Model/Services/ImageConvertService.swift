@@ -6,25 +6,43 @@
  
 */
 
-import AppKit
 import DataSource
+import Foundation
 import WebPEncoder
 
-public struct ImageConvertService {
+struct ImageConvertService {
     private let appStateClient: AppStateClient
+    private let dataClient: DataClient
     private let fileManagerClient: FileManagerClient
+    private let nsImageClient: NSImageClient
 
-    public init(_ appDependencies: AppDependencies) {
+    init(_ appDependencies: AppDependencies) {
         self.appStateClient = appDependencies.appStateClient
+        self.dataClient = appDependencies.dataClient
         self.fileManagerClient = appDependencies.fileManagerClient
+        self.nsImageClient = appDependencies.nsImageClient
     }
 
-    public func imageFiles(urls: [URL]) -> [ImageFile] {
+    func setHomeDirectory() {
+        appStateClient.withLock { [fileManagerClient] in
+            $0.homeDirectory = fileManagerClient
+                .homeDirectoryForCurrentUser()
+                .pathComponents
+                .prefix(3)
+                .reduce {
+                    URL(filePath: $0)
+                } successor: {
+                    $0.append(path: $1, directoryHint: .isDirectory)
+                }
+        }
+    }
+
+    func imageFiles(urls: [URL]) -> [ImageFile] {
         urls.compactMap { url in
-            guard url.startAccessingSecurityScopedResource() else { return nil }
             let attributes: [FileAttributeKey : Any]? = {
                 do {
-                    return try fileManagerClient.attributesOfItem(url.path(percentEncoded: false))
+                    let path = url.absoluteURL.path(percentEncoded: false)
+                    return try fileManagerClient.attributesOfItem(path)
                 } catch {
                     print(error.localizedDescription)
                     return nil
@@ -36,29 +54,57 @@ public struct ImageConvertService {
         }
     }
 
-    public func exportFolder(imageFiles: [ImageFile]) -> ExportFolder? {
-        guard !imageFiles.isEmpty else {
-            return nil
+    private func uniqueFileURL(for originalURL: URL) -> URL {
+        let baseName = originalURL.deletingPathExtension().lastPathComponent
+        let pathExtension = originalURL.pathExtension
+        var uniqueURL = originalURL
+        var counter = 2
+        while fileManagerClient.fileExists(uniqueURL.absoluteURL.path(percentEncoded: false)) {
+            let newFileName = "\(baseName) \(counter)"
+            uniqueURL = originalURL.deletingLastPathComponent()
+                .appendingPathComponent(newFileName)
+                .appendingPathExtension(pathExtension)
+            counter += 1
         }
-        return ExportFolder { [copy = imageFiles, appStateClient] in
-            let encoder = WebPEncoder()
-            return copy.enumerated().compactMap { index, imageFile -> WebPFile? in
-                let value = Double(index + 1) / Double(copy.count)
-                guard imageFile.url.startAccessingSecurityScopedResource() else { return nil }
-                defer { imageFile.url.stopAccessingSecurityScopedResource() }
-                guard let nsImage = NSImage(contentsOf: imageFile.url),
-                      let cgImage = nsImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                    appStateClient.withLock { $0.progressSubject.send(value) }
-                    return nil
+        return uniqueURL
+    }
+
+    func convert(imageFiles: [ImageFile], percentage: Int, deleteOriginal: Bool) async {
+        guard !imageFiles.isEmpty else { return }
+        let total = imageFiles.count
+        let ratio = CGFloat(percentage) / 100
+        let encoder = WebPEncoder()
+        for (offset, imageFile) in imageFiles.enumerated() {
+            let value = Double(offset + 1) / Double(total)
+            guard let nsImage = nsImageClient.contentsOf(imageFile.url),
+                  let cgImage = nsImageClient.cgImage(nsImage),
+                  let resizedCGImage = cgImage.resize(ratio: ratio) else {
+                continue
+            }
+            do {
+                let config = WebPEncoderConfig.preset(.picture, quality: 0.9, multithread: false)
+                let webpData = try encoder.encode(resizedCGImage, config: config)
+                appStateClient.withLock { $0.progressSubject.send(value) }
+                let fileURL = imageFile.url.deletingPathExtension().appendingPathExtension("webp")
+                let isSameFileName = imageFile.url.compare(with: fileURL)
+                switch (deleteOriginal, isSameFileName) {
+                case (true, true):
+                    try fileManagerClient.removeItem(imageFile.url)
+                    try dataClient.write(webpData, fileURL)
+
+                case (true, false):
+                    try dataClient.write(webpData, fileURL)
+                    try fileManagerClient.removeItem(imageFile.url)
+
+                case (false, true):
+                    try dataClient.write(webpData, uniqueFileURL(for: fileURL))
+
+                case (false, false):
+                    try dataClient.write(webpData, fileURL)
                 }
-                do {
-                    let webpData = try encoder.encode(cgImage, config: .preset(.picture, quality: 0.9, multithread: false))
-                    appStateClient.withLock { $0.progressSubject.send(value) }
-                    return WebPFile(originalURL: imageFile.url, data: webpData)
-                } catch {
-                    print(error.localizedDescription)
-                    return nil
-                }
+            } catch {
+                print(error.localizedDescription)
+                continue
             }
         }
     }

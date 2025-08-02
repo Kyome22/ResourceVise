@@ -9,8 +9,13 @@
 import Logging
 
 public enum ErrorEvent {
-    case none
+    case selectedItemIsNotHomeDirectory
 
-    public var message: Logger.Message { "" }
+    public var message: Logger.Message {
+        switch self {
+        case .selectedItemIsNotHomeDirectory:
+            "Selected item is not home directory."
+        }
+    }
     public var metadata: Logger.Metadata? { nil }
 }
