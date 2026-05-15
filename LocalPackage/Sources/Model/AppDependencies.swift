@@ -9,35 +9,15 @@
 import DataSource
 import SwiftUI
 
-public final class AppDependencies: Sendable {
-    public let appStateClient: AppStateClient
-    public let dataClient: DataClient
-    public let fileManagerClient: FileManagerClient
-    public let loggingSystemClient: LoggingSystemClient
-    public let nsImageClient: NSImageClient
-    public let nsWorkspaceClient: NSWorkspaceClient
-    public let urlClient: URLClient
-    public let userDefaultsClient: UserDefaultsClient
-
-    nonisolated init(
-        appStateClient: AppStateClient = .liveValue,
-        dataClient: DataClient = .liveValue,
-        fileManagerClient: FileManagerClient = .liveValue,
-        loggingSystemClient: LoggingSystemClient = .liveValue,
-        nsImageClient: NSImageClient = .liveValue,
-        nsWorkspaceClient: NSWorkspaceClient = .liveValue,
-        urlClient: URLClient = .liveValue,
-        userDefaultsClient: UserDefaultsClient = .liveValue
-    ) {
-        self.appStateClient = appStateClient
-        self.dataClient = dataClient
-        self.fileManagerClient = fileManagerClient
-        self.loggingSystemClient = loggingSystemClient
-        self.nsImageClient = nsImageClient
-        self.nsWorkspaceClient = nsWorkspaceClient
-        self.urlClient = urlClient
-        self.userDefaultsClient = userDefaultsClient
-    }
+public struct AppDependencies: Sendable {
+    public var appStateClient = AppStateClient.liveValue
+    public var dataClient = DataClient.liveValue
+    public var fileManagerClient = FileManagerClient.liveValue
+    public var loggingSystemClient = LoggingSystemClient.liveValue
+    public var nsImageClient = NSImageClient.liveValue
+    public var nsWorkspaceClient = NSWorkspaceClient.liveValue
+    public var urlClient = URLClient.liveValue
+    public var userDefaultsClient = UserDefaultsClient.liveValue
 
     static let shared = AppDependencies()
 }

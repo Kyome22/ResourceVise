@@ -11,7 +11,8 @@ import DataSource
 import Observation
 import UniformTypeIdentifiers
 
-@MainActor @Observable public final class ImageVise {
+@MainActor @Observable
+public final class ImageVise: Composable {
     private let appStateClient: AppStateClient
     private let nsWorkspaceClient: NSWorkspaceClient
     private let bookmarkRepository: BookmarkRepository
@@ -28,9 +29,12 @@ import UniformTypeIdentifiers
     public var progressValue: Double
     public var imageFiles: [ImageFile]
     public var homePermission: HomePermission?
+    public let action: (Action) async -> Void
+
     public var homeDirectory: URL? {
         appStateClient.withLock(\.homeDirectory)
     }
+
     public var disableToConvert: Bool {
         imageFiles.isEmpty
     }
@@ -44,7 +48,8 @@ import UniformTypeIdentifiers
         isProcessing: Bool = false,
         progressValue: Double = .zero,
         imageFiles: [ImageFile] = [],
-        homePermission: HomePermission? = nil
+        homePermission: HomePermission? = nil,
+        action: @escaping (Action) async -> Void = { _ in }
     ) {
         self.appStateClient = appDependencies.appStateClient
         self.nsWorkspaceClient = appDependencies.nsWorkspaceClient
@@ -59,10 +64,11 @@ import UniformTypeIdentifiers
         self.progressValue = progressValue
         self.imageFiles = imageFiles
         self.homePermission = homePermission
+        self.action = action
     }
 
-    public func send(_ aciton: Action) async {
-        switch aciton {
+    public func reduce(_ action: Action) async {
+        switch action {
         case let .task(appDependencies, screenName):
             logService.notice(.screenView(name: screenName))
             task = Task { [weak self, appStateClient] in
@@ -125,11 +131,11 @@ import UniformTypeIdentifiers
             }
 
         case .homePermission:
-            break
+            return
         }
     }
 
-    public enum Action {
+    public enum Action: Sendable {
         case task(AppDependencies, String)
         case onDisappear
         case importButtonTapped

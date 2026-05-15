@@ -74,9 +74,6 @@ struct HomePermissionView: View {
         .frame(width: 300)
         .fixedSize()
         .padding()
-        .task {
-            await store.send(.task(String(describing: Self.self)))
-        }
         .fileImporter(
             isPresented: $store.isPresentedFileImporter,
             allowedContentTypes: [.directory],
@@ -90,6 +87,9 @@ struct HomePermissionView: View {
         .fileDialogURLEnabled(store.predicate)
         .fileDialogMessage(Text("selectHome\(store.homeDirectoryPath)", bundle: .module))
         .fileDialogConfirmationLabel(Text("grant", bundle: .module))
+        .task {
+            await store.send(.task(String(describing: Self.self)))
+        }
     }
 }
 

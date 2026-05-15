@@ -13,7 +13,7 @@ import UniformTypeIdentifiers
 
 struct ImageViseView: View {
     @Environment(\.appDependencies) private var appDependencies
-    @State var store: ImageVise
+    @StateObject var store: ImageVise
 
     var body: some View {
         VStack {
@@ -76,14 +76,6 @@ struct ImageViseView: View {
         }
         .padding()
         .disabled(store.isProcessing)
-        .task {
-            await store.send(.task(appDependencies, String(describing: Self.self)))
-        }
-        .onDisappear {
-            Task {
-                await store.send(.onDisappear)
-            }
-        }
         .toolbar {
             ToolbarItem(id: "flexible-space-id") {
                 Spacer()
@@ -117,8 +109,18 @@ struct ImageViseView: View {
         .fileDialogDefaultDirectory(store.homeDirectory?.appending(path: "Desktop"))
         .focusedSceneValue(\.imageViseSend, .init(send: { await store.send($0) }))
         .focusedSceneValue(\.disableToConvert, store.disableToConvert)
+        .task {
+            await store.send(.task(appDependencies, String(describing: Self.self)))
+        }
+        .onDisappear {
+            Task {
+                await store.send(.onDisappear)
+            }
+        }
     }
 }
+
+extension ImageVise: ObservableObject {}
 
 #Preview {
     ImageViseView(store: .init(.testDependencies()))

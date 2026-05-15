@@ -1,4 +1,4 @@
-// swift-tools-version: 6.1
+// swift-tools-version: 6.2
 
 import PackageDescription
 
@@ -27,7 +27,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-log.git", exact: "1.6.1"),
+        .package(url: "https://github.com/apple/swift-log.git", exact: "1.12.0"),
         .package(url: "https://github.com/Kyome22/WebPEncoder.git", exact: "0.1.1"),
     ],
     targets: [

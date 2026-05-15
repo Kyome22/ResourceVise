@@ -10,21 +10,25 @@ import DataSource
 import Foundation
 import Observation
 
-@MainActor @Observable public final class HomePermission: Identifiable {
+@MainActor @Observable
+public final class HomePermission: Composable, Identifiable {
     private let appStateClient: AppStateClient
     private let bookmarkRepository: BookmarkRepository
     private let logService: LogService
-    private let action: @MainActor (Action) async -> Void
 
     public let id: UUID
     public var bookmarkState: BookmarkState
     public var isPresentedFileImporter: Bool
+    public let action: (Action) async -> Void
+
     public var homeDirectory: URL? {
         appStateClient.withLock(\.homeDirectory)
     }
+
     public var homeDirectoryPath: String {
         homeDirectory?.path() ?? "/Users/UserName/"
     }
+
     public var predicate: Predicate<URL> {
         let home = homeDirectory
         return #Predicate<URL> { value in
@@ -41,20 +45,18 @@ import Observation
         id: UUID = UUID(),
         bookmarkState: BookmarkState = .notSaved,
         isPresentedFileImporter: Bool = false,
-        action: @MainActor @escaping (Action) async -> Void
+        action: @escaping (Action) async -> Void = { _ in }
     ) {
         self.appStateClient = appDependencies.appStateClient
         self.bookmarkRepository = .init(appDependencies.urlClient, appDependencies.userDefaultsClient)
         self.logService = .init(appDependencies)
-        self.action = action
         self.id = id
         self.bookmarkState = bookmarkState
         self.isPresentedFileImporter = isPresentedFileImporter
+        self.action = action
     }
 
-    public func send(_ action: Action) async {
-        await self.action(action)
-
+    public func reduce(_ action: Action) async {
         switch action {
         case let .task(screenName):
             logService.notice(.screenView(name: screenName))
@@ -79,18 +81,18 @@ import Observation
             }
 
         case .setUpLaterButtonTapped:
-            break
+            return
 
         case .revokePermissionButtonTapped:
             bookmarkRepository.remove()
             bookmarkState = bookmarkRepository.bookmarkState
 
         case .closeButtonTapped:
-            break
+            return
         }
     }
 
-    public enum Action {
+    public enum Action: Sendable {
         case task(String)
         case grantPermissionButtonTapped
         case onCompletionGrantPermission(Result<URL, any Error>)
