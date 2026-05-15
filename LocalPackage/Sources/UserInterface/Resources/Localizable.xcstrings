@@ -121,6 +121,16 @@
         }
       }
     },
+    "quality" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quality:"
+          }
+        }
+      }
+    },
     "requiresPreparation" : {
       "localizations" : {
         "en" : {

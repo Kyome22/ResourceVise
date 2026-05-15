@@ -23,6 +23,7 @@ public final class ImageVise: Composable {
 
     public var bookmarkState: BookmarkState
     public var percentage: Int
+    public var quality: Int
     public var deleteOriginal: Bool
     public var isPresentedFileImporter: Bool
     public var isProcessing: Bool
@@ -43,6 +44,7 @@ public final class ImageVise: Composable {
         _ appDependencies: AppDependencies,
         bookmarkState: BookmarkState = .notSaved,
         percentage: Int = 100,
+        quality: Int = 90,
         deleteOriginal: Bool = true,
         isPresentedFileImporter: Bool = false,
         isProcessing: Bool = false,
@@ -58,6 +60,7 @@ public final class ImageVise: Composable {
         self.logService = .init(appDependencies)
         self.bookmarkState = bookmarkState
         self.percentage = percentage
+        self.quality = quality
         self.deleteOriginal = deleteOriginal
         self.isPresentedFileImporter = isPresentedFileImporter
         self.isProcessing = isProcessing
@@ -98,6 +101,7 @@ public final class ImageVise: Composable {
             await imageConvertService.convert(
                 imageFiles: imageFiles,
                 percentage: percentage,
+                quality: quality,
                 deleteOriginal: deleteOriginal
             )
             imageFiles.removeAll()

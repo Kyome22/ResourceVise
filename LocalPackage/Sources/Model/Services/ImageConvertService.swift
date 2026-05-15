@@ -82,10 +82,11 @@ struct ImageConvertService {
         return uniqueURL
     }
 
-    func convert(imageFiles: [ImageFile], percentage: Int, deleteOriginal: Bool) async {
+    func convert(imageFiles: [ImageFile], percentage: Int, quality: Int, deleteOriginal: Bool) async {
         guard !imageFiles.isEmpty else { return }
         let total = imageFiles.count
         let ratio = CGFloat(percentage) / 100
+        let qualityRatio = Float(quality) / 100
         let encoder = WebPEncoder()
         for (offset, imageFile) in imageFiles.enumerated() {
             let value = Double(offset + 1) / Double(total)
@@ -95,7 +96,7 @@ struct ImageConvertService {
                 continue
             }
             do {
-                let config = WebPEncoderConfig.preset(.picture, quality: 0.9, multithread: false)
+                let config = WebPEncoderConfig.preset(.picture, quality: qualityRatio, multithread: false)
                 let webpData = try encoder.encode(resizedCGImage, config: config)
                 appStateClient.withLock { $0.progressSubject.send(value) }
                 let fileURL = imageFile.url.deletingPathExtension().appendingPathExtension("webp")

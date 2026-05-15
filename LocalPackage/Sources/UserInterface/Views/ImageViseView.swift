@@ -80,6 +80,16 @@ struct ImageViseView: View {
                     .frame(width: 40)
                     Text(verbatim: "%")
                 }
+                HStack(spacing: 2) {
+                    Text("quality", bundle: .module)
+                    TextField(value: $store.quality, format: .number) {
+                        EmptyView()
+                    }
+                    .multilineTextAlignment(.trailing)
+                    .labelsHidden()
+                    .frame(width: 40)
+                    Text(verbatim: "%")
+                }
                 Toggle(isOn: $store.deleteOriginal) {
                     Text("deleteOriginal", bundle: .module)
                 }
@@ -93,6 +103,7 @@ struct ImageViseView: View {
                 .controlSize(.large)
                 .disabled(store.disableToConvert)
             }
+            .fixedSize()
         }
         .padding()
         .disabled(store.isProcessing)
