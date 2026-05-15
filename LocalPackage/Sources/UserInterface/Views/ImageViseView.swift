@@ -37,6 +37,26 @@ struct ImageViseView: View {
                     .labelStyle(.iconOnly)
                 }
             }
+            .overlay {
+                if store.imageFiles.isEmpty {
+                    ContentUnavailableView {
+                        Label {
+                            Text("dropImagesHere", bundle: .module)
+                        } icon: {
+                            Image(systemName: "square.and.arrow.down")
+                        }
+                    } description: {
+                        Text("dropImagesHereDescription", bundle: .module)
+                    }
+                }
+            }
+            .dropDestination(for: URL.self) { urls, _ in
+                guard store.imageFiles.isEmpty else { return false }
+                Task {
+                    await store.send(.onCompletionFileImport(appDependencies, .success(urls)))
+                }
+                return true
+            }
             ProgressView(value: store.progressValue)
                 .frame(maxWidth: .infinity)
                 .opacity(store.isProcessing ? 1 : 0)

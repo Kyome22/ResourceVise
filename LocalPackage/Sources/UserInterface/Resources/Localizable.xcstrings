@@ -51,6 +51,26 @@
         }
       }
     },
+    "dropImagesHere" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drop images or folders here"
+          }
+        }
+      }
+    },
+    "dropImagesHereDescription" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import images by dragging files or a folder from Finder."
+          }
+        }
+      }
+    },
     "grant" : {
       "localizations" : {
         "en" : {

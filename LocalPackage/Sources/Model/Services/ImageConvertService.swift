@@ -8,6 +8,7 @@
 
 import DataSource
 import Foundation
+import UniformTypeIdentifiers
 import WebPEncoder
 
 struct ImageConvertService {
@@ -38,7 +39,18 @@ struct ImageConvertService {
     }
 
     func imageFiles(urls: [URL]) -> [ImageFile] {
-        urls.compactMap { url in
+        let expanded = urls.flatMap { url -> [URL] in
+            if fileManagerClient.isDirectory(url) {
+                return (try? fileManagerClient.contentsOfDirectory(url)) ?? []
+            } else {
+                return [url]
+            }
+        }
+        let imageURLs = expanded.filter { url in
+            guard let type = UTType(filenameExtension: url.pathExtension) else { return false }
+            return type.conforms(to: .image)
+        }
+        return imageURLs.compactMap { url in
             let attributes: [FileAttributeKey : Any]? = {
                 do {
                     let path = url.absoluteURL.path(percentEncoded: false)
@@ -52,6 +64,7 @@ struct ImageConvertService {
             let fileSize = ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file)
             return ImageFile(url: url, size: fileSize)
         }
+        .sorted { $0.filename.localizedStandardCompare($1.filename) == .orderedAscending }
     }
 
     private func uniqueFileURL(for originalURL: URL) -> URL {
