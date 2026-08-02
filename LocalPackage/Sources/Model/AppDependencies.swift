@@ -11,6 +11,7 @@ import SwiftUI
 
 public struct AppDependencies: Sendable {
     public var appStateClient = AppStateClient.liveValue
+    public var cgImageSourceClient = CGImageSourceClient.liveValue
     public var dataClient = DataClient.liveValue
     public var fileManagerClient = FileManagerClient.liveValue
     public var loggingSystemClient = LoggingSystemClient.liveValue
@@ -29,6 +30,7 @@ public extension EnvironmentValues {
 extension AppDependencies {
     public static func testDependencies(
         appStateClient: AppStateClient = .testValue,
+        cgImageSourceClient: CGImageSourceClient = .testValue,
         dataClient: DataClient = .testValue,
         fileManagerClient: FileManagerClient = .testValue,
         loggingSystemClient: LoggingSystemClient = .testValue,
@@ -39,6 +41,7 @@ extension AppDependencies {
     ) -> AppDependencies {
         AppDependencies(
             appStateClient: appStateClient,
+            cgImageSourceClient: cgImageSourceClient,
             dataClient: dataClient,
             fileManagerClient: fileManagerClient,
             loggingSystemClient: loggingSystemClient,

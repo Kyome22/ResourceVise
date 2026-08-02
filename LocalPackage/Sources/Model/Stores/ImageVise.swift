@@ -17,6 +17,7 @@ public final class ImageVise: Composable {
     private let nsWorkspaceClient: NSWorkspaceClient
     private let bookmarkRepository: BookmarkRepository
     private let imageConvertService: ImageConvertService
+    private let imageThumbnailService: ImageThumbnailService
     private let logService: LogService
 
     @ObservationIgnored private var task: Task<Void, Never>?
@@ -57,6 +58,7 @@ public final class ImageVise: Composable {
         self.nsWorkspaceClient = appDependencies.nsWorkspaceClient
         self.bookmarkRepository = .init(appDependencies.urlClient, appDependencies.userDefaultsClient)
         self.imageConvertService = .init(appDependencies)
+        self.imageThumbnailService = .init(appDependencies)
         self.logService = .init(appDependencies)
         self.bookmarkState = bookmarkState
         self.percentage = percentage
@@ -95,6 +97,15 @@ public final class ImageVise: Composable {
 
         case .importButtonTapped:
             isPresentedFileImporter = true
+
+        case let .thumbnailTask(id):
+            guard let imageFile = imageFiles.first(where: { $0.id == id }),
+                  imageFile.thumbnail == nil,
+                  let thumbnail = await imageThumbnailService.thumbnail(url: imageFile.url),
+                  let index = imageFiles.firstIndex(where: { $0.id == id }) else {
+                return
+            }
+            imageFiles[index].thumbnail = thumbnail
 
         case .convertButtonTapped:
             isProcessing = true
@@ -143,6 +154,7 @@ public final class ImageVise: Composable {
         case task(AppDependencies, String)
         case onDisappear
         case importButtonTapped
+        case thumbnailTask(ImageFile.ID)
         case convertButtonTapped
         case onCompletionFileImport(AppDependencies, Result<[URL], any Error>)
         case homePermissionButtonTapped(AppDependencies)
