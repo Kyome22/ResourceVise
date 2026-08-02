@@ -58,14 +58,14 @@ public final class HomePermission: Composable, Identifiable {
 
     public func reduce(_ action: Action) async {
         switch action {
-        case let .task(screenName):
+        case let .viewAppeared(screenName):
             logService.notice(.screenView(name: screenName))
             bookmarkState = bookmarkRepository.bookmarkState
 
         case .grantPermissionButtonTapped:
             isPresentedFileImporter = true
 
-        case let .onCompletionGrantPermission(result):
+        case let .grantPermissionCompleted(result):
             switch result {
             case let .success(url) where url == homeDirectory:
                 do {
@@ -93,9 +93,9 @@ public final class HomePermission: Composable, Identifiable {
     }
 
     public enum Action: Sendable {
-        case task(String)
+        case viewAppeared(String)
         case grantPermissionButtonTapped
-        case onCompletionGrantPermission(Result<URL, any Error>)
+        case grantPermissionCompleted(Result<URL, any Error>)
         case setUpLaterButtonTapped
         case revokePermissionButtonTapped
         case closeButtonTapped

@@ -12,7 +12,6 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct ImageViseView: View {
-    @Environment(\.appDependencies) private var appDependencies
     @StateObject var store: ImageVise
 
     var body: some View {
@@ -30,7 +29,7 @@ struct ImageViseView: View {
                     }
                     .labelStyle(.iconOnly)
                     .task(id: imageFile.id) {
-                        await store.send(.thumbnailTask(imageFile.id))
+                        await store.send(.imageFileAppeared(imageFile.id))
                     }
                 }
             }
@@ -50,7 +49,7 @@ struct ImageViseView: View {
             .dropDestination(for: URL.self) { urls, _ in
                 guard store.imageFiles.isEmpty else { return false }
                 Task {
-                    await store.send(.onCompletionFileImport(appDependencies, .success(urls)))
+                    await store.send(.fileImportCompleted(.success(urls)))
                 }
                 return true
             }
@@ -111,7 +110,7 @@ struct ImageViseView: View {
             ToolbarItem {
                 Button {
                     Task {
-                        await store.send(.homePermissionButtonTapped(appDependencies))
+                        await store.send(.homePermissionButtonTapped)
                     }
                 } label: {
                     Image(systemName: store.bookmarkState.imageName)
@@ -130,7 +129,7 @@ struct ImageViseView: View {
             allowsMultipleSelection: true,
             onCompletion: { result in
                 Task {
-                    await store.send(.onCompletionFileImport(appDependencies, result))
+                    await store.send(.fileImportCompleted(result))
                 }
             }
         )
@@ -138,11 +137,11 @@ struct ImageViseView: View {
         .focusedSceneValue(\.imageViseSend, .init(send: { await store.send($0) }))
         .focusedSceneValue(\.disableToConvert, store.disableToConvert)
         .task {
-            await store.send(.task(appDependencies, String(describing: Self.self)))
+            await store.send(.viewAppeared(String(describing: Self.self)))
         }
         .onDisappear {
             Task {
-                await store.send(.onDisappear)
+                await store.send(.viewDisappeared)
             }
         }
     }

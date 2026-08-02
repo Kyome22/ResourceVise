@@ -3,28 +3,50 @@
  Model
 
  Created by Takuto Nakamura on 2024/11/13.
- 
+
 */
 
 import DataSource
 import SwiftUI
 
-public struct AppDependencies: Sendable {
-    public var appStateClient = AppStateClient.liveValue
-    public var cgImageSourceClient = CGImageSourceClient.liveValue
-    public var dataClient = DataClient.liveValue
-    public var fileManagerClient = FileManagerClient.liveValue
-    public var loggingSystemClient = LoggingSystemClient.liveValue
-    public var nsImageClient = NSImageClient.liveValue
-    public var nsWorkspaceClient = NSWorkspaceClient.liveValue
-    public var urlClient = URLClient.liveValue
-    public var userDefaultsClient = UserDefaultsClient.liveValue
+public final class AppDependencies: Sendable {
+    public let appStateClient: AppStateClient
+    public let cgImageSourceClient: CGImageSourceClient
+    public let dataClient: DataClient
+    public let fileManagerClient: FileManagerClient
+    public let loggingSystemClient: LoggingSystemClient
+    public let nsImageClient: NSImageClient
+    public let nsWorkspaceClient: NSWorkspaceClient
+    public let urlClient: URLClient
+    public let userDefaultsClient: UserDefaultsClient
+
+    nonisolated init(
+        appStateClient: AppStateClient = .liveValue,
+        cgImageSourceClient: CGImageSourceClient = .liveValue,
+        dataClient: DataClient = .liveValue,
+        fileManagerClient: FileManagerClient = .liveValue,
+        loggingSystemClient: LoggingSystemClient = .liveValue,
+        nsImageClient: NSImageClient = .liveValue,
+        nsWorkspaceClient: NSWorkspaceClient = .liveValue,
+        urlClient: URLClient = .liveValue,
+        userDefaultsClient: UserDefaultsClient = .liveValue
+    ) {
+        self.appStateClient = appStateClient
+        self.cgImageSourceClient = cgImageSourceClient
+        self.dataClient = dataClient
+        self.fileManagerClient = fileManagerClient
+        self.loggingSystemClient = loggingSystemClient
+        self.nsImageClient = nsImageClient
+        self.nsWorkspaceClient = nsWorkspaceClient
+        self.urlClient = urlClient
+        self.userDefaultsClient = userDefaultsClient
+    }
 
     static let shared = AppDependencies()
 }
 
-public extension EnvironmentValues {
-    @Entry var appDependencies = AppDependencies.shared
+extension EnvironmentValues {
+    @Entry public var appDependencies = AppDependencies.shared
 }
 
 extension AppDependencies {

@@ -102,7 +102,7 @@ struct ImageConvertService {
             do {
                 let config = WebPEncoderConfig.preset(.picture, quality: qualityRatio, multithread: false)
                 let webpData = try encoder.encode(resizedCGImage, config: config)
-                appStateClient.withLock { $0.progressSubject.send(value) }
+                appStateClient.send(\.progress, value)
                 let fileURL = imageFile.url.deletingPathExtension().appendingPathExtension("webp")
                 let isSameFileName = imageFile.url.compare(with: fileURL)
                 switch (deleteOriginal, isSameFileName) {

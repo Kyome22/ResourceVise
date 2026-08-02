@@ -3,7 +3,7 @@
  Model
 
  Created by Takuto Nakamura on 2024/11/30.
- 
+
 */
 
 import Foundation
@@ -13,8 +13,8 @@ import UniformTypeIdentifiers
 
 @MainActor @Observable
 public final class ImageVise: Composable {
+    private let appDependencies: AppDependencies
     private let appStateClient: AppStateClient
-    private let nsWorkspaceClient: NSWorkspaceClient
     private let bookmarkRepository: BookmarkRepository
     private let imageConvertService: ImageConvertService
     private let imageThumbnailService: ImageThumbnailService
@@ -54,8 +54,8 @@ public final class ImageVise: Composable {
         homePermission: HomePermission? = nil,
         action: @escaping (Action) async -> Void = { _ in }
     ) {
+        self.appDependencies = appDependencies
         self.appStateClient = appDependencies.appStateClient
-        self.nsWorkspaceClient = appDependencies.nsWorkspaceClient
         self.bookmarkRepository = .init(appDependencies.urlClient, appDependencies.userDefaultsClient)
         self.imageConvertService = .init(appDependencies)
         self.imageThumbnailService = .init(appDependencies)
@@ -74,11 +74,15 @@ public final class ImageVise: Composable {
 
     public func reduce(_ action: Action) async {
         switch action {
-        case let .task(appDependencies, screenName):
+        case let .viewAppeared(screenName):
             logService.notice(.screenView(name: screenName))
+            if let latestProgress = appStateClient.withLock(\.progress.latestValue) {
+                progressValue = latestProgress
+            }
+            task?.cancel()
             task = Task { [weak self, appStateClient] in
-                let values = appStateClient.withLock(\.progressSubject.values)
-                for await value in values {
+                let stream = appStateClient.withLock(\.progress.stream)
+                for await value in stream {
                     self?.progressValue = value
                 }
             }
@@ -92,13 +96,14 @@ public final class ImageVise: Composable {
                 _ = bookmarkRepository.enable()
             }
 
-        case .onDisappear:
+        case .viewDisappeared:
             task?.cancel()
+            task = nil
 
         case .importButtonTapped:
             isPresentedFileImporter = true
 
-        case let .thumbnailTask(id):
+        case let .imageFileAppeared(id):
             guard let imageFile = imageFiles.first(where: { $0.id == id }),
                   imageFile.thumbnail == nil,
                   let thumbnail = await imageThumbnailService.thumbnail(url: imageFile.url),
@@ -118,7 +123,7 @@ public final class ImageVise: Composable {
             imageFiles.removeAll()
             isProcessing = false
 
-        case let .onCompletionFileImport(appDependencies, result):
+        case let .fileImportCompleted(result):
             switch result {
             case let .success(urls):
                 switch bookmarkRepository.bookmarkState {
@@ -133,7 +138,7 @@ public final class ImageVise: Composable {
                 print(error.localizedDescription)
             }
 
-        case let .homePermissionButtonTapped(appDependencies):
+        case .homePermissionButtonTapped:
             homePermission = .init(appDependencies, action: { [weak self] in
                 await self?.send(.homePermission($0))
             })
@@ -151,13 +156,13 @@ public final class ImageVise: Composable {
     }
 
     public enum Action: Sendable {
-        case task(AppDependencies, String)
-        case onDisappear
+        case viewAppeared(String)
+        case viewDisappeared
         case importButtonTapped
-        case thumbnailTask(ImageFile.ID)
+        case imageFileAppeared(ImageFile.ID)
         case convertButtonTapped
-        case onCompletionFileImport(AppDependencies, Result<[URL], any Error>)
-        case homePermissionButtonTapped(AppDependencies)
+        case fileImportCompleted(Result<[URL], any Error>)
+        case homePermissionButtonTapped
         case homePermission(HomePermission.Action)
     }
 }

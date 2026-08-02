@@ -20,16 +20,16 @@ struct ImageViseTests {
     }
 
     @Test
-    func send_task_bookmarkIsNotSaved_homePermissionIsPresented() async {
+    func send_viewAppeared_bookmarkIsNotSaved_homePermissionIsPresented() async {
         let store = ImageVise(.testDependencies())
-        await store.send(.task(.testDependencies(), "ImageViseView"))
+        await store.send(.viewAppeared("ImageViseView"))
         #expect(store.homePermission != nil)
         #expect(store.bookmarkState == .notSaved)
-        await store.send(.onDisappear)
+        await store.send(.viewDisappeared)
     }
 
     @Test
-    func send_task_bookmarkIsSaved_securityScopedResourceIsStarted() async {
+    func send_viewAppeared_bookmarkIsSaved_securityScopedResourceIsStarted() async {
         let startedURLs = OSAllocatedUnfairLock<[URL]>(initialState: [])
         let homeDirectory = homeDirectory
         let store = ImageVise(.testDependencies(
@@ -42,37 +42,43 @@ struct ImageViseTests {
             },
             userDefaultsClient: savedBookmarkUserDefaultsClient()
         ))
-        await store.send(.task(.testDependencies(), "ImageViseView"))
+        await store.send(.viewAppeared("ImageViseView"))
         #expect(store.homePermission == nil)
         #expect(store.bookmarkState == .saved)
         #expect(startedURLs.withLock(\.self) == [homeDirectory])
-        await store.send(.onDisappear)
+        await store.send(.viewDisappeared)
     }
 
     @Test
-    func send_task_progressOfConversionIsObserved() async {
+    func send_viewAppeared_latestProgressIsRestored() async {
         let appState = OSAllocatedUnfairLock<AppState>(initialState: .init())
+        appState.withLock { $0.progress.send(0.5) }
         let store = ImageVise(.testDependencies(appStateClient: .testDependency(appState)))
-        await store.send(.task(.testDependencies(), "ImageViseView"))
-        await waitUntil {
-            appState.withLock { $0.progressSubject.send(0.5) }
-            return store.progressValue == 0.5
-        }
+        await store.send(.viewAppeared("ImageViseView"))
         #expect(store.progressValue == 0.5)
-        await store.send(.onDisappear)
+        await store.send(.viewDisappeared)
     }
 
     @Test
-    func send_onDisappear_progressIsNoLongerObserved() async {
+    func send_viewAppeared_progressOfConversionIsObserved() async {
         let appState = OSAllocatedUnfairLock<AppState>(initialState: .init())
         let store = ImageVise(.testDependencies(appStateClient: .testDependency(appState)))
-        await store.send(.task(.testDependencies(), "ImageViseView"))
-        await waitUntil {
-            appState.withLock { $0.progressSubject.send(0.5) }
-            return store.progressValue == 0.5
-        }
-        await store.send(.onDisappear)
-        appState.withLock { $0.progressSubject.send(1) }
+        await store.send(.viewAppeared("ImageViseView"))
+        appState.withLock { $0.progress.send(0.5) }
+        await waitUntil { store.progressValue == 0.5 }
+        #expect(store.progressValue == 0.5)
+        await store.send(.viewDisappeared)
+    }
+
+    @Test
+    func send_viewDisappeared_progressIsNoLongerObserved() async {
+        let appState = OSAllocatedUnfairLock<AppState>(initialState: .init())
+        let store = ImageVise(.testDependencies(appStateClient: .testDependency(appState)))
+        await store.send(.viewAppeared("ImageViseView"))
+        appState.withLock { $0.progress.send(0.5) }
+        await waitUntil { store.progressValue == 0.5 }
+        await store.send(.viewDisappeared)
+        appState.withLock { $0.progress.send(1) }
         try? await Task.sleep(for: .milliseconds(200))
         #expect(store.progressValue == 0.5)
     }
@@ -85,7 +91,7 @@ struct ImageViseTests {
     }
 
     @Test
-    func send_thumbnailTask_sets_thumbnail_of_matching_image_file() async {
+    func send_imageFileAppeared_thumbnailOfMatchingImageFileIsSet() async {
         let thumbnail = CGImage.dummy()
         let store = ImageVise(
             .testDependencies(
@@ -96,12 +102,12 @@ struct ImageViseTests {
             ),
             imageFiles: [ImageFile(url: URL(filePath: "/Users/test/photo.jpg"), size: "1 KB")]
         )
-        await store.send(.thumbnailTask(store.imageFiles[0].id))
+        await store.send(.imageFileAppeared(store.imageFiles[0].id))
         #expect(store.imageFiles[0].thumbnail === thumbnail)
     }
 
     @Test
-    func send_thumbnailTask_thumbnailIsAlreadyLoaded_imageIsNotDecodedAgain() async {
+    func send_imageFileAppeared_thumbnailIsAlreadyLoaded_imageIsNotDecodedAgain() async {
         let createCallCount = OSAllocatedUnfairLock<Int>(initialState: 0)
         let store = ImageVise(
             .testDependencies(
@@ -120,12 +126,12 @@ struct ImageViseTests {
                 ),
             ]
         )
-        await store.send(.thumbnailTask(store.imageFiles[0].id))
+        await store.send(.imageFileAppeared(store.imageFiles[0].id))
         #expect(createCallCount.withLock(\.self) == 0)
     }
 
     @Test
-    func send_thumbnailTask_identifierIsUnknown_imageIsNotDecoded() async {
+    func send_imageFileAppeared_identifierIsUnknown_imageIsNotDecoded() async {
         let createCallCount = OSAllocatedUnfairLock<Int>(initialState: 0)
         let store = ImageVise(
             .testDependencies(
@@ -137,7 +143,7 @@ struct ImageViseTests {
                 }
             )
         )
-        await store.send(.thumbnailTask(UUID()))
+        await store.send(.imageFileAppeared(UUID()))
         #expect(createCallCount.withLock(\.self) == 0)
     }
 
@@ -182,7 +188,7 @@ struct ImageViseTests {
     }
 
     @Test
-    func send_onCompletionFileImport_bookmarkIsSaved_imageFilesAreSortedByFilename() async {
+    func send_fileImportCompleted_bookmarkIsSaved_imageFilesAreSortedByFilename() async {
         let store = ImageVise(.testDependencies(
             fileManagerClient: testDependency(of: FileManagerClient.self) {
                 $0.attributesOfItem = { _ in [.size: UInt64(2048)] }
@@ -194,29 +200,26 @@ struct ImageViseTests {
             URL(filePath: "/Users/test/a.jpg"),
             URL(filePath: "/Users/test/note.txt"),
         ]
-        await store.send(.onCompletionFileImport(.testDependencies(), .success(urls)))
+        await store.send(.fileImportCompleted(.success(urls)))
         #expect(store.imageFiles.map(\.filename) == ["a.jpg", "b.png"])
     }
 
     @Test
-    func send_onCompletionFileImport_bookmarkIsNotSaved_homePermissionIsPresented() async {
+    func send_fileImportCompleted_bookmarkIsNotSaved_homePermissionIsPresented() async {
         let store = ImageVise(.testDependencies(
             fileManagerClient: testDependency(of: FileManagerClient.self) {
                 $0.attributesOfItem = { _ in [.size: UInt64(2048)] }
             }
         ))
-        await store.send(.onCompletionFileImport(
-            .testDependencies(),
-            .success([URL(filePath: "/Users/test/a.jpg")])
-        ))
+        await store.send(.fileImportCompleted(.success([URL(filePath: "/Users/test/a.jpg")])))
         #expect(store.homePermission != nil)
         #expect(store.imageFiles.isEmpty)
     }
 
     @Test
-    func send_onCompletionFileImport_failure_imageFilesAreLeftUntouched() async {
+    func send_fileImportCompleted_failure_imageFilesAreLeftUntouched() async {
         let store = ImageVise(.testDependencies(userDefaultsClient: savedBookmarkUserDefaultsClient()))
-        await store.send(.onCompletionFileImport(.testDependencies(), .failure(URLError(.unknown))))
+        await store.send(.fileImportCompleted(.failure(URLError(.unknown))))
         #expect(store.imageFiles.isEmpty)
         #expect(store.homePermission == nil)
     }
@@ -224,7 +227,7 @@ struct ImageViseTests {
     @Test
     func send_homePermissionButtonTapped_homePermissionIsPresented() async {
         let store = ImageVise(.testDependencies())
-        await store.send(.homePermissionButtonTapped(.testDependencies()))
+        await store.send(.homePermissionButtonTapped)
         #expect(store.homePermission != nil)
     }
 
