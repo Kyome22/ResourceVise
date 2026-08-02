@@ -79,7 +79,7 @@ struct HomePermissionView: View {
             allowedContentTypes: [.directory],
             onCompletion: { result in
                 Task {
-                    await store.send(.onCompletionGrantPermission(result))
+                    await store.send(.grantPermissionCompleted(result))
                 }
             }
         )
@@ -88,7 +88,7 @@ struct HomePermissionView: View {
         .fileDialogMessage(Text("selectHome\(store.homeDirectoryPath)", bundle: .module))
         .fileDialogConfirmationLabel(Text("grant", bundle: .module))
         .task {
-            await store.send(.task(String(describing: Self.self)))
+            await store.send(.viewAppeared(String(describing: Self.self)))
         }
     }
 }

@@ -1,20 +1,23 @@
 /*
  AppState.swift
- LocalPackage
+ DataSource
 
  Created by Takuto Nakamura on 2025/07/27.
- 
+
 */
 
-import Combine
 import Foundation
 
 public struct AppState: Sendable {
-    public var hasAlreadyBootstrap = false
+    public var hasAlreadyBootstrap: Bool
     public var homeDirectory: URL?
-    public let progressSubject = PassthroughSubject<Double, Never>()
-}
+    public var progress = AsyncStreamBundle<Double>()
 
-extension CurrentValueSubject: @retroactive @unchecked Sendable where Failure == Never, Output : Sendable {}
-extension PassthroughSubject: @retroactive @unchecked Sendable where Failure == Never, Output : Sendable {}
-extension AsyncPublisher: @retroactive @unchecked Sendable {}
+    init(
+        hasAlreadyBootstrap: Bool = false,
+        homeDirectory: URL? = nil
+    ) {
+        self.hasAlreadyBootstrap = hasAlreadyBootstrap
+        self.homeDirectory = homeDirectory
+    }
+}

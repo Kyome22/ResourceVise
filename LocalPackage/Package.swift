@@ -10,7 +10,7 @@ let package = Package(
     name: "LocalPackage",
     defaultLocalization: "en",
     platforms: [
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         .library(
@@ -27,6 +27,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(url: "https://github.com/apple/swift-async-algorithms.git", exact: "1.1.4"),
         .package(url: "https://github.com/apple/swift-log.git", exact: "1.12.0"),
         .package(url: "https://github.com/Kyome22/WebPEncoder.git", exact: "0.1.1"),
     ],
@@ -34,6 +35,7 @@ let package = Package(
         .target(
             name: "DataSource",
             dependencies: [
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
                 .product(name: "Logging", package: "swift-log"),
             ],
             swiftSettings: swiftSettings
@@ -50,6 +52,7 @@ let package = Package(
         .target(
             name: "UserInterface",
             dependencies: [
+                "DataSource",
                 "Model",
             ],
             swiftSettings: swiftSettings

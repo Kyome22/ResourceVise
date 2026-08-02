@@ -33,13 +33,13 @@ struct HomePermissionTests {
     }
 
     @Test
-    func send_task_bookmarkStateIsRestored() async {
+    func send_viewAppeared_bookmarkStateIsRestored() async {
         let stored = OSAllocatedUnfairLock<Data?>(initialState: Data([1, 2, 3]))
         let store = HomePermission(
             .testDependencies(userDefaultsClient: storingUserDefaultsClient(stored: stored)),
             bookmarkState: .notSaved
         )
-        await store.send(.task("HomePermissionView"))
+        await store.send(.viewAppeared("HomePermissionView"))
         #expect(store.bookmarkState == .saved)
     }
 
@@ -51,7 +51,7 @@ struct HomePermissionTests {
     }
 
     @Test
-    func send_onCompletionGrantPermission_homeDirectoryIsSelected_bookmarkIsStored() async {
+    func send_grantPermissionCompleted_homeDirectoryIsSelected_bookmarkIsStored() async {
         let stored = OSAllocatedUnfairLock<Data?>(initialState: nil)
         let startedURLs = OSAllocatedUnfairLock<[URL]>(initialState: [])
         let store = HomePermission(.testDependencies(
@@ -59,13 +59,13 @@ struct HomePermissionTests {
             urlClient: grantingURLClient(startedURLs: startedURLs),
             userDefaultsClient: storingUserDefaultsClient(stored: stored)
         ))
-        await store.send(.onCompletionGrantPermission(.success(homeDirectory)))
+        await store.send(.grantPermissionCompleted(.success(homeDirectory)))
         #expect(stored.withLock(\.self) == Data([1, 2, 3]))
         #expect(store.bookmarkState == .saved)
     }
 
     @Test
-    func send_onCompletionGrantPermission_otherDirectoryIsSelected_bookmarkIsNotStored() async {
+    func send_grantPermissionCompleted_otherDirectoryIsSelected_bookmarkIsNotStored() async {
         let stored = OSAllocatedUnfairLock<Data?>(initialState: nil)
         let startedURLs = OSAllocatedUnfairLock<[URL]>(initialState: [])
         let store = HomePermission(.testDependencies(
@@ -73,7 +73,7 @@ struct HomePermissionTests {
             urlClient: grantingURLClient(startedURLs: startedURLs),
             userDefaultsClient: storingUserDefaultsClient(stored: stored)
         ))
-        await store.send(.onCompletionGrantPermission(
+        await store.send(.grantPermissionCompleted(
             .success(URL(filePath: "/Users/test/Documents", directoryHint: .isDirectory))
         ))
         #expect(stored.withLock(\.self) == nil)
@@ -81,7 +81,7 @@ struct HomePermissionTests {
     }
 
     @Test
-    func send_onCompletionGrantPermission_failure_bookmarkIsNotStored() async {
+    func send_grantPermissionCompleted_failure_bookmarkIsNotStored() async {
         let stored = OSAllocatedUnfairLock<Data?>(initialState: nil)
         let startedURLs = OSAllocatedUnfairLock<[URL]>(initialState: [])
         let store = HomePermission(.testDependencies(
@@ -89,7 +89,7 @@ struct HomePermissionTests {
             urlClient: grantingURLClient(startedURLs: startedURLs),
             userDefaultsClient: storingUserDefaultsClient(stored: stored)
         ))
-        await store.send(.onCompletionGrantPermission(.failure(URLError(.unknown))))
+        await store.send(.grantPermissionCompleted(.failure(URLError(.unknown))))
         #expect(stored.withLock(\.self) == nil)
         #expect(store.bookmarkState == .notSaved)
     }
