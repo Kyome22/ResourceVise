@@ -26,15 +26,12 @@ struct ImageViseView: View {
                             Text(imageFile.size)
                         }
                     } label: {
-                        AsyncImage(url: imageFile.url) { image in
-                            image.resizable()
-                                .scaledToFit()
-                                .frame(width: 25, height: 25)
-                        } placeholder: {
-                            Image(systemName: "questionmark.square.dashed")
-                        }
+                        ThumbnailImage(thumbnail: imageFile.thumbnail)
                     }
                     .labelStyle(.iconOnly)
+                    .task(id: imageFile.id) {
+                        await store.send(.thumbnailTask(imageFile.id))
+                    }
                 }
             }
             .overlay {
