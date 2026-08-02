@@ -18,6 +18,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         logService.notice(.launchApp)
 
         ImageConvertService(appDependencies).setHomeDirectory()
+
+        Task(priority: .utility) { [appDependencies] in
+            await TemporaryFileCleanupService(appDependencies).cleanUp()
+        }
     }
 
     public func applicationWillTerminate(_ notification: Notification) {

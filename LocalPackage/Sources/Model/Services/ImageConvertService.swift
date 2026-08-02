@@ -41,7 +41,11 @@ struct ImageConvertService {
     func imageFiles(urls: [URL]) -> [ImageFile] {
         let expanded = urls.flatMap { url -> [URL] in
             if fileManagerClient.isDirectory(url) {
-                return (try? fileManagerClient.contentsOfDirectory(url)) ?? []
+                let options: FileManager.DirectoryEnumerationOptions = [
+                    .skipsHiddenFiles,
+                    .skipsSubdirectoryDescendants,
+                ]
+                return (try? fileManagerClient.contentsOfDirectory(url, options)) ?? []
             } else {
                 return [url]
             }

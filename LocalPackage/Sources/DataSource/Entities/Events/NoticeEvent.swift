@@ -11,6 +11,7 @@ import Logging
 public enum NoticeEvent {
     case launchApp
     case screenView(name: String)
+    case cleanedUpTemporaryDirectory(fileCount: Int, byteCount: Int64)
 
     public var message: Logger.Message {
         switch self {
@@ -18,6 +19,8 @@ public enum NoticeEvent {
             "launch_app"
         case .screenView:
             "screen_view"
+        case .cleanedUpTemporaryDirectory:
+            "cleaned_up_temporary_directory"
         }
     }
 
@@ -27,6 +30,11 @@ public enum NoticeEvent {
             [:]
         case let .screenView(name):
             ["screen": .string(name)]
+        case let .cleanedUpTemporaryDirectory(fileCount, byteCount):
+            [
+                "file_count": .stringConvertible(fileCount),
+                "byte_count": .stringConvertible(byteCount),
+            ]
         }
     }
 }
