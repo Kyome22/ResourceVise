@@ -7,12 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1C1840BB301F705000F46302 /* UnitTest.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 1C1840BA301F705000F46302 /* UnitTest.xctestplan */; };
 		1C434ED42E35549A009E7F91 /* UserInterface in Frameworks */ = {isa = PBXBuildFile; productRef = 1C434ED32E35549A009E7F91 /* UserInterface */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1C10E9B32CE4CAB500856861 /* ResourceVise.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ResourceVise.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C10E9CF2CE4CBA000856861 /* LocalPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = LocalPackage; sourceTree = "<group>"; };
+		1C1840BA301F705000F46302 /* UnitTest.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = UnitTest.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -38,6 +40,7 @@
 		1C10E9AA2CE4CAB500856861 = {
 			isa = PBXGroup;
 			children = (
+				1C1840BA301F705000F46302 /* UnitTest.xctestplan */,
 				1C10E9CF2CE4CBA000856861 /* LocalPackage */,
 				1C10E9B52CE4CAB500856861 /* ResourceVise */,
 				1C10E9D02CE4D23200856861 /* Frameworks */,
@@ -125,6 +128,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1C1840BB301F705000F46302 /* UnitTest.xctestplan in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
