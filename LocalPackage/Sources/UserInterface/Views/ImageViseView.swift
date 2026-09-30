@@ -23,6 +23,15 @@ struct ImageViseView: View {
                             Text(imageFile.filename)
                             Spacer()
                             Text(imageFile.size)
+                            Button {
+                                Task {
+                                    await store.send(.removeButtonTapped(imageFile.id))
+                                }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                            }
+                            .buttonStyle(.borderless)
+                            .help(Text("remove", bundle: .module))
                         }
                     } label: {
                         ThumbnailImage(thumbnail: imageFile.thumbnail)
@@ -65,6 +74,15 @@ struct ImageViseView: View {
                     Text("import", bundle: .module)
                 }
                 .controlSize(.large)
+                Button {
+                    Task {
+                        await store.send(.clearAllButtonTapped)
+                    }
+                } label: {
+                    Text("clearAll", bundle: .module)
+                }
+                .controlSize(.large)
+                .disabled(store.hasNoImageFiles)
                 Spacer()
                 HStack(spacing: 2) {
                     Text("size", bundle: .module)
@@ -97,7 +115,7 @@ struct ImageViseView: View {
                     Text("convert", bundle: .module)
                 }
                 .controlSize(.large)
-                .disabled(store.disableToConvert)
+                .disabled(store.hasNoImageFiles)
             }
             .fixedSize()
         }
@@ -135,7 +153,7 @@ struct ImageViseView: View {
         )
         .fileDialogDefaultDirectory(store.homeDirectory?.appending(path: "Desktop"))
         .focusedSceneValue(\.imageViseSend, .init(send: { await store.send($0) }))
-        .focusedSceneValue(\.disableToConvert, store.disableToConvert)
+        .focusedSceneValue(\.hasNoImageFiles, store.hasNoImageFiles)
         .task {
             await store.send(.viewAppeared(String(describing: Self.self)))
         }

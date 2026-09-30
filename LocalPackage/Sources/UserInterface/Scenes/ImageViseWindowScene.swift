@@ -13,7 +13,7 @@ import SwiftUI
 public struct ImageViseWindowScene: Scene {
     @Environment(\.appDependencies) private var appDependencies
     @FocusedValue(\.imageViseSend) private var send
-    @FocusedValue(\.disableToConvert) private var disableToConvert
+    @FocusedValue(\.hasNoImageFiles) private var hasNoImageFiles
 
     public init() {}
 
@@ -41,7 +41,16 @@ public struct ImageViseWindowScene: Scene {
                     Text("convert", bundle: .module)
                 }
                 .keyboardShortcut("s", modifiers: .command)
-                .disabled(disableToConvert ?? true)
+                .disabled(hasNoImageFiles ?? true)
+                Button {
+                    Task {
+                        await send?(.clearAllButtonTapped)
+                    }
+                } label: {
+                    Text("clearAll", bundle: .module)
+                }
+                .keyboardShortcut(.delete, modifiers: .command)
+                .disabled(hasNoImageFiles ?? true)
             }
         }
     }

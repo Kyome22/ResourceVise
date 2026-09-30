@@ -148,6 +148,42 @@ struct ImageViseTests {
     }
 
     @Test
+    func send_removeButtonTapped_matchingImageFileIsRemoved() async {
+        let store = ImageVise(
+            .testDependencies(),
+            imageFiles: [
+                ImageFile(url: URL(filePath: "/Users/test/a.jpg"), size: "1 KB"),
+                ImageFile(url: URL(filePath: "/Users/test/b.png"), size: "2 KB"),
+            ]
+        )
+        await store.send(.removeButtonTapped(store.imageFiles[0].id))
+        #expect(store.imageFiles.map(\.filename) == ["b.png"])
+    }
+
+    @Test
+    func send_removeButtonTapped_identifierIsUnknown_imageFilesAreLeftUntouched() async {
+        let store = ImageVise(
+            .testDependencies(),
+            imageFiles: [ImageFile(url: URL(filePath: "/Users/test/a.jpg"), size: "1 KB")]
+        )
+        await store.send(.removeButtonTapped(UUID()))
+        #expect(store.imageFiles.map(\.filename) == ["a.jpg"])
+    }
+
+    @Test
+    func send_clearAllButtonTapped_imageFilesAreCleared() async {
+        let store = ImageVise(
+            .testDependencies(),
+            imageFiles: [
+                ImageFile(url: URL(filePath: "/Users/test/a.jpg"), size: "1 KB"),
+                ImageFile(url: URL(filePath: "/Users/test/b.png"), size: "2 KB"),
+            ]
+        )
+        await store.send(.clearAllButtonTapped)
+        #expect(store.imageFiles.isEmpty)
+    }
+
+    @Test
     func send_convertButtonTapped_originalIsReplacedByWebP() async {
         let writtenURLs = OSAllocatedUnfairLock<[URL]>(initialState: [])
         let removedURLs = OSAllocatedUnfairLock<[URL]>(initialState: [])
