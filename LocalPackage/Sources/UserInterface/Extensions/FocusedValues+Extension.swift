@@ -11,5 +11,5 @@ import SwiftUI
 
 extension FocusedValues {
     @Entry var imageViseSend: ImageViseActionWrapper?
-    @Entry var disableToConvert: Bool?
+    @Entry var hasNoImageFiles: Bool?
 }

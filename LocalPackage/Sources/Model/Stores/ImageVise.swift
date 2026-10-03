@@ -37,7 +37,7 @@ public final class ImageVise: Composable {
         appStateClient.withLock(\.homeDirectory)
     }
 
-    public var disableToConvert: Bool {
+    public var hasNoImageFiles: Bool {
         imageFiles.isEmpty
     }
 
@@ -112,6 +112,12 @@ public final class ImageVise: Composable {
             }
             imageFiles[index].thumbnail = thumbnail
 
+        case let .removeButtonTapped(id):
+            imageFiles.removeAll { $0.id == id }
+
+        case .clearAllButtonTapped:
+            imageFiles.removeAll()
+
         case .convertButtonTapped:
             isProcessing = true
             await imageConvertService.convert(
@@ -160,6 +166,8 @@ public final class ImageVise: Composable {
         case viewDisappeared
         case importButtonTapped
         case imageFileAppeared(ImageFile.ID)
+        case removeButtonTapped(ImageFile.ID)
+        case clearAllButtonTapped
         case convertButtonTapped
         case fileImportCompleted(Result<[URL], any Error>)
         case homePermissionButtonTapped
